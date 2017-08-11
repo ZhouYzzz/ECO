@@ -231,7 +231,7 @@ MxArray::MxArray(const cv::KeyPoint& p) :
 template<>
 void MxArray::fromVector(const std::vector<char>& v)
 {
-    mwSize size[] = {1, v.size()};
+    mwSize size[] = {1, static_cast<int>(v.size())};
     p_ = mxCreateCharArray(2, size);
     if (!p_)
         mexErrMsgIdAndTxt("mexopencv:error", "Allocation error");
