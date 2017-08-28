@@ -272,13 +272,19 @@ while true
             det_sample_pos = sample_pos;
             sample_scale = currentScaleFactor*scaleFactors;
             xt = extract_features(im, sample_pos, sample_scale, features, global_fparams, feature_extract_info);
-                        
+            
             % Project sample
             xt_proj = project_sample(xt, projection_matrix);
             
             % Do windowing of features
             xt_proj = cellfun(@(feat_map, cos_window) bsxfun(@times, feat_map, cos_window), xt_proj, cos_window, 'uniformoutput', false);
             
+            % While detection, we should shift the feature
+            if params.RS
+                % Shift feature to [-T/2, T/2] domain
+                xt_proj = cellfun(@(feat_map) fftshift(feat_map), xt_proj, 'uniformoutput', false);
+            end
+
             % Compute the fourier series
             xtf_proj = cellfun(@cfft2, xt_proj, 'uniformoutput', false);
             
@@ -299,6 +305,8 @@ while true
             % Also sum over all feature blocks.
             % Gives the fourier coefficients of the convolution response.
             scores_fs = permute(gather(scores_fs_sum), [1 2 4 3]);
+
+            % fprintf('DEBUG FRAME %d\n', seq.frame); figure(30); imagesc(fftshift(cifft2(scores_fs)));
             
             % Optimize the continuous score function with Newton's method.
             [trans_row, trans_col, scale_ind] = optimize_scores(scores_fs, params.newton_iterations);
@@ -350,6 +358,12 @@ while true
         % Do windowing of features
         xlw = cellfun(@(feat_map, cos_window) bsxfun(@times, feat_map, cos_window), xl, cos_window, 'uniformoutput', false);
         
+        % While training in 1st frame
+        if params.RS
+            % Shift feature to [-T/2, T/2] domain
+            xlw = cellfun(@(feat_map) fftshift(feat_map), xlw, 'uniformoutput', false);
+        end
+
         % Compute the fourier series
         xlf = cellfun(@cfft2, xlw, 'uniformoutput', false);
         
@@ -382,7 +396,11 @@ while true
             
             % Do windowing of features
             xl_proj = cellfun(@(feat_map, cos_window) bsxfun(@times, feat_map, cos_window), xl_proj, cos_window, 'uniformoutput', false);
-            
+
+            if params.RS
+                % Shift feature to [-T/2, T/2] domain
+                xl_proj = cellfun(@(feat_map) fftshift(feat_map), xl_proj, 'uniformoutput', false);
+            end
             % Compute the fourier series
             xlf1_proj = cellfun(@cfft2, xl_proj, 'uniformoutput', false);
             
