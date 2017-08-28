@@ -52,10 +52,11 @@ params.skip_after_frame = 10;           % After which frame number the sparse up
 params.use_detection_sample = true;     % Use the sample that was extracted at the detection stage also for learning
 
 % Factorized convolution parameters
-% YZ : using projection matrix will make fftshifted tracker fail. 08/28/17
-params.use_projection_matrix = false;    % Use projection matrix, i.e. use the factorized convolution formulation
+% YZ : using projection matrix will make fftshifted tracker unstable. 08/28/17
+% UPDATE : already fixed, we can now use projection matrix properly
+params.use_projection_matrix = true;    % Use projection matrix, i.e. use the factorized convolution formulation
 params.update_projection_matrix = true; % Whether the projection matrix should be optimized or not
-params.proj_init_method = 'pca';        % Method for initializing the projection matrix
+params.proj_init_method = 'pca'; %'rand_uni' (rand_uni is worse than pca)        % Method for initializing the projection matrix
 params.projection_reg = 1e-7;	 	 	% Regularization paremeter of the projection matrix
 
 % Generative sample space model parameters

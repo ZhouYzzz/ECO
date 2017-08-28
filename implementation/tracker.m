@@ -282,7 +282,7 @@ while true
             % While detection, we should shift the feature
             if params.RS
                 % Shift feature to [-T/2, T/2] domain
-                xt_proj = cellfun(@(feat_map) fftshift(feat_map), xt_proj, 'uniformoutput', false);
+                xt_proj = cellfun(@(feat_map) fftshift(fftshift(feat_map,1),2), xt_proj, 'uniformoutput', false);
             end
 
             % Compute the fourier series
@@ -361,7 +361,7 @@ while true
         % While training in 1st frame
         if params.RS
             % Shift feature to [-T/2, T/2] domain
-            xlw = cellfun(@(feat_map) fftshift(feat_map), xlw, 'uniformoutput', false);
+            xlw = cellfun(@(feat_map) fftshift(fftshift(feat_map,1),2), xlw, 'uniformoutput', false);
         end
 
         % Compute the fourier series
@@ -378,8 +378,14 @@ while true
         xlf = shift_sample(xlf, shift_samp, kx, ky);
         
         % Init the projection matrix
-        projection_matrix = init_projection_matrix(xl, sample_dim, params);
-        
+        if params.RS
+            % xl_shift = xl;
+            xl_shift = cellfun(@(xl) fftshift(fftshift(xl,1),2), xl, 'uniformoutput', false);
+            projection_matrix = init_projection_matrix(xl_shift, sample_dim, params);
+        else
+            projection_matrix = init_projection_matrix(xl, sample_dim, params);
+        end
+
         % Project sample
         xlf_proj = project_sample(xlf, projection_matrix);
         
@@ -399,7 +405,7 @@ while true
 
             if params.RS
                 % Shift feature to [-T/2, T/2] domain
-                xl_proj = cellfun(@(feat_map) fftshift(feat_map), xl_proj, 'uniformoutput', false);
+                xl_proj = cellfun(@(feat_map) fftshift(fftshift(feat_map,1),2), xl_proj, 'uniformoutput', false);
             end
             % Compute the fourier series
             xlf1_proj = cellfun(@cfft2, xl_proj, 'uniformoutput', false);
