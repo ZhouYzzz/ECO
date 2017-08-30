@@ -239,6 +239,11 @@ params.minimum_sample_weight = params.learning_rate*(1-params.learning_rate)^(2*
 res_norms = [];
 residuals_pcg = [];
 
+if params.RS
+% init rotate model
+rotate_model = init_rotate_model(params);
+end
+
 while true
     % Read image
     if seq.frame > 0
@@ -306,7 +311,12 @@ while true
             % Gives the fourier coefficients of the convolution response.
             scores_fs = permute(gather(scores_fs_sum), [1 2 4 3]);
 
-            % fprintf('DEBUG FRAME %d\n', seq.frame); figure(30); imagesc(fftshift(cifft2(scores_fs)));
+			if params.RS
+                % compute scores using rotated filters
+				[rotate_model, scores_fs_rotated] = track_rotate_model(xtf_proj, hf_full, rotate_model, k1, block_inds, pad_sz, params);
+				% choose the best score among all scores, then update rotate_model
+                [rotate_model, scores_fs] = update_rotate_model(scores_fs, scores_fs_rotated, rotate_model, params);
+			end
             
             % Optimize the continuous score function with Newton's method.
             [trans_row, trans_col, scale_ind] = optimize_scores(scores_fs, params.newton_iterations);
@@ -429,6 +439,11 @@ while true
         % Shift the sample so that the target is centered
         shift_samp = 2*pi * (pos - sample_pos) ./ (sample_scale * img_support_sz);
         xlf_proj = shift_sample(xlf_proj, shift_samp, kx, ky);
+
+        if params.RS && params.use_rotated_sample
+            % rotate the sample
+            xlf_proj = cellfun(@(xf) rotate_filter(xf, -rotate_model.current_ang), xlf_proj, 'uniformoutput', false);
+        end
     end
     
     % The permuted sample is only needed for the CPU implementation
@@ -489,7 +504,9 @@ while true
     end
 
     sample_weights = cast(prior_weights, 'like', params.data_type);
-           
+    
+% 	figure(97); plot(sample_weights);
+	
     train_tracker = (seq.frame < params.skip_after_frame) || (frames_since_last_train >= params.train_gap);
     
     if train_tracker     
@@ -539,6 +556,10 @@ while true
                 [hf, projection_matrix, res_norms] = train_joint_gpu(hf, projection_matrix, xlf, yf, reg_filter, sample_energy, reg_energy, proj_energy, params, init_CG_opts);
             else
                 [hf, projection_matrix, res_norms] = train_joint(hf, projection_matrix, xlf, yf, reg_filter, sample_energy, reg_energy, proj_energy, params, init_CG_opts);
+            end
+
+            if params.RS && params.use_fixed_filter
+                rotate_model.fixed_filter = full_fourier_coeff(hf);
             end
             
             % Re-project and insert training sample

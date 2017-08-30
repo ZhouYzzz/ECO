@@ -43,7 +43,7 @@ params.clamp_position = false;          % Clamp the target position to be inside
 
 % Learning parameters
 params.output_sigma_factor = 1/16;		% Label function sigma
-params.learning_rate = 0.009;	 	 	% Learning rate
+params.learning_rate = 0.015;%9	 	 	% Learning rate
 params.nSamples = 30;                   % Maximum number of stored training samples
 params.sample_replace_strategy = 'lowest_prior';    % Which sample to replace when the memory is full
 params.lt_size = 0;                     % The size of the long-term memory (where all samples have equal weight)
@@ -95,7 +95,7 @@ params.scale_step = 1.01;               % The scale factor
 
 % Scale filter parameters
 % Only used if: params.use_scale_filter = true
-params.use_scale_filter = false;        % Use the fDSST scale filter or not (for speed)
+params.use_scale_filter = true;        % Use the fDSST scale filter or not (for speed)
 params.scale_sigma_factor = 1/16;       % Scale label function sigma
 params.scale_learning_rate = 0.025;		% Scale filter learning rate
 params.number_of_scales_filter = 17;    % Number of scales
@@ -109,9 +109,15 @@ params.lambda = 1e-2;					% Scale filter regularization
 params.do_poly_interp = true;           % Do 2nd order polynomial interpolation to obtain more accurate scale
 
 % Using Rotate or Scale filter
+% used when params.RS = true
 params.RS = 1;
-%params.rotate = 1;                      % Rotate the filter
-%params.scale = 1;                       % Rescale the filter
+params.RS_debug = 0;
+params.n_angs = 9;                     % num of angles for searching, even prefered
+params.ang_interval = 5;
+params.rotate_alpha = 1.;
+params.dynamic_angles = 1;
+params.use_rotated_sample = 0;
+params.use_fixed_filter = 0;
 
 % Visualization
 params.visualization = 1;               % Visualiza tracking and detection scores

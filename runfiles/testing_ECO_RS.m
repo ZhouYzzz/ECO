@@ -27,7 +27,7 @@ cnn_params.input_size_scale = 1;                % Extra scale factor of the inpu
 % Which features to include
 params.t_features = {
     struct('getFeature',@get_cnn_layers, 'fparams',cnn_params),...
-    struct('getFeature',@get_fhog,'fparams',hog_params),...
+    ...struct('getFeature',@get_fhog,'fparams',hog_params),...
     ...struct('getFeature',@get_colorspace, 'fparams',grayscale_params),...
     ...struct('getFeature',@get_table_feature, 'fparams',cn_params),...
     ...struct('getFeature',@get_table_feature, 'fparams',ic_params),...
@@ -116,8 +116,12 @@ params.use_scale_filter = false;          % Use the fDSST scale filter or not (f
 
 % Using Rotate or Scale filter
 params.RS = 0;
-params.rotate = 1;                      % Rotate the filter
-params.scale = 1;                       % Rescale the filter
+params.RS_debug = 1;
+params.n_angs = 7;                     % num of angles for searching, even prefered
+params.ang_interval = 5;
+params.rotate_alpha = 1.0;
+params.dynamic_angles = 1;
+params.use_rotated_sample = 1;
 
 % Visualization
 params.visualization = 1;               % Visualiza tracking and detection scores
