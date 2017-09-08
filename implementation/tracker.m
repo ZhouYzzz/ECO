@@ -242,6 +242,11 @@ residuals_pcg = [];
 if params.RS
 % init rotate model
 rotate_model = init_rotate_model(params);
+% scale_model = init_scale_model(filter_sz_cell, params);
+end
+
+if params.RS_scale
+scale_model = init_scale_model(filter_sz_cell, params);
 end
 
 while true
@@ -317,6 +322,11 @@ while true
 				% choose the best score among all scores, then update rotate_model
                 [rotate_model, scores_fs] = update_rotate_model(scores_fs, scores_fs_rotated, rotate_model, params);
 			end
+
+            if params.RS_scale
+                [scale_model, scores_fs_scaled] = track_scale_model(xtf_proj, hf_full, scale_model, k1, block_inds, pad_sz, params);
+                [scale_model, ~] = update_scale_model(scores_fs, scores_fs_scaled, scale_model, params);
+            end
             
             % Optimize the continuous score function with Newton's method.
             [trans_row, trans_col, scale_ind] = optimize_scores(scores_fs, params.newton_iterations);

@@ -1,21 +1,13 @@
 %% track_rotate_model: function description
-function [model, scores_fs_cell] = track_rotate_model(xf,hf,model,k1,block_inds,pad_sz,params)
-    if params.use_fixed_filter
-        hf = model.fixed_filter;
-    end
-
+function [model, scores_fs_cell] = track_scale_model(xf,hf,model,k1,block_inds,pad_sz,params)
     if params.debug,tic;end;
     % construct rotated filters
-    for i = 1:model.n_angs
-        if model.dynamic_angles
-            model.rotated_filters_cell{i} = cellfun(@(hf) rotate_filter(hf, model.current_ang + model.angs(i)), hf, 'uniformoutput', false);
-        else
-            model.rotated_filters_cell{i} = cellfun(@(hf) rotate_filter(hf, model.angs(i)), hf, 'uniformoutput', false);
-        end
+    for i = 1:model.n_scales
+        model.scaled_filters_cell{i} = cellfun(@(hf) scale_filter(hf, model.scales(i)), hf, 'uniformoutput', false);
     end
     % compute scores of different angles
-    scores_fs_cell = cellfun(@(hf_rot) compute_scoref(hf_rot,xf,k1,block_inds,pad_sz), model.rotated_filters_cell, 'uniformoutput', false);
-    if params.debug,t=toc;fprintf('track_rotate_model: takes %.2f ms\n',t*1e3);end;
+    scores_fs_cell = cellfun(@(hf_scl) compute_scoref(hf_scl,xf,k1,block_inds,pad_sz), model.scaled_filters_cell, 'uniformoutput', false);
+    if params.debug,t=toc;fprintf('track_scale_model: takes %.2f ms\n',t*1e3);end;
 end
 
 %% compute_scoref: function description

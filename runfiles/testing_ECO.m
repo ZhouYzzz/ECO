@@ -40,7 +40,7 @@ params.t_global.normalize_dim = true;   % Also normalize with respect to the dim
 
 % Image sample parameters
 params.search_area_shape = 'square';    % The shape of the samples
-params.search_area_scale = 4.5;         % The scaling of the target size to get the search area
+params.search_area_scale = 3;%4.5;         % The scaling of the target size to get the search area
 params.min_image_sample_size = 200^2;   % Minimum area of image samples
 params.max_image_sample_size = 250^2;   % Maximum area of image samples
 

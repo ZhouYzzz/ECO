@@ -122,6 +122,10 @@ params.ang_interval = 5;
 params.rotate_alpha = 1.0;
 params.dynamic_angles = 1;
 params.use_rotated_sample = 1;
+params.use_fixed_filter = 0;
+% scale params
+params.RS_scale = false;
+params.n_scales = 4;
 
 % Visualization
 params.visualization = 1;               % Visualiza tracking and detection scores

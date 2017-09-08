@@ -6,8 +6,8 @@
 setup_paths();
 
 % Load video information
-% video_path = 'sequences/Crossing';
-video_name = 'ClifBar';
+%video_path = 'sequences/Crossing';
+video_name = 'Ironman';
 video_path = fullfile(get_global_variable('ECO_dataset_path'),'OTB50',video_name);
 
 [seq, ground_truth] = load_video_info(video_path);
@@ -17,7 +17,7 @@ results = testing_ECO_HC_RS(seq);
 
 % perform better : Surfer (final 10 frames), MotorRolling
 
-% same : ClifBar
+% same : ClifBar, CarScale
 
 % perform worse : Tiger2 
 
@@ -29,3 +29,6 @@ results = testing_ECO_HC_RS(seq);
 % params.rotate_alpha = 1.05;
 % params.dynamic_angles = 1;
 % params.use_rotated_sample = 0;
+
+
+% Singer2, Matrix

@@ -19,7 +19,7 @@ ic_params.compressed_dim = 3;
 
 % Which features to include
 params.t_features = {
-    ...struct('getFeature',@get_fhog,'fparams',hog_params),...
+    struct('getFeature',@get_fhog,'fparams',hog_params),...
     ...struct('getFeature',@get_colorspace, 'fparams',grayscale_params),...
     struct('getFeature',@get_table_feature, 'fparams',cn_params),...
     struct('getFeature',@get_table_feature, 'fparams',ic_params),...
@@ -32,7 +32,7 @@ params.t_global.normalize_dim = true;   % Also normalize with respect to the dim
 
 % Image sample parameters
 params.search_area_shape = 'square';    % The shape of the samples
-params.search_area_scale = 4.0;         % The scaling of the target size to get the search area
+params.search_area_scale = 3;         % The scaling of the target size to get the search area
 params.min_image_sample_size = 150^2;   % Minimum area of image samples
 params.max_image_sample_size = 200^2;   % Maximum area of image samples
 
@@ -43,7 +43,7 @@ params.clamp_position = false;          % Clamp the target position to be inside
 
 % Learning parameters
 params.output_sigma_factor = 1/16;		% Label function sigma
-params.learning_rate = 0.015;%9	 	 	% Learning rate
+params.learning_rate = 0.009;%9	 	 	% Learning rate
 params.nSamples = 30;                   % Maximum number of stored training samples
 params.sample_replace_strategy = 'lowest_prior';    % Which sample to replace when the memory is full
 params.lt_size = 0;                     % The size of the long-term memory (where all samples have equal weight)
@@ -60,7 +60,7 @@ params.proj_init_method = 'pca'; %'rand_uni' (rand_uni is worse than pca)       
 params.projection_reg = 1e-7;	 	 	% Regularization paremeter of the projection matrix
 
 % Generative sample space model parameters
-params.use_sample_merge = true;                 % Use the generative sample space model to merge samples
+params.use_sample_merge = 1;                 % Use the generative sample space model to merge samples
 params.sample_merge_type = 'Merge';             % Strategy for updating the samples
 params.distance_matrix_update_type = 'exact';   % Strategy for updating the distance matrix
 
@@ -95,7 +95,7 @@ params.scale_step = 1.01;               % The scale factor
 
 % Scale filter parameters
 % Only used if: params.use_scale_filter = true
-params.use_scale_filter = true;        % Use the fDSST scale filter or not (for speed)
+params.use_scale_filter = 1;        % Use the fDSST scale filter or not (for speed)
 params.scale_sigma_factor = 1/16;       % Scale label function sigma
 params.scale_learning_rate = 0.025;		% Scale filter learning rate
 params.number_of_scales_filter = 17;    % Number of scales
@@ -110,14 +110,18 @@ params.do_poly_interp = true;           % Do 2nd order polynomial interpolation 
 
 % Using Rotate or Scale filter
 % used when params.RS = true
-params.RS = 1;
+params.RS = 0;
 params.RS_debug = 0;
-params.n_angs = 9;                     % num of angles for searching, even prefered
-params.ang_interval = 5;
-params.rotate_alpha = 1.;
+params.n_angs = 21;                     % num of angles for searching, even prefered
+params.ang_interval = 3;
+params.rotate_alpha = 1.00;
 params.dynamic_angles = 1;
-params.use_rotated_sample = 0;
+params.use_rotated_sample = 1;
 params.use_fixed_filter = 0;
+% scale params
+params.RS_scale = false;
+params.n_scales = 4;
+
 
 % Visualization
 params.visualization = 1;               % Visualiza tracking and detection scores

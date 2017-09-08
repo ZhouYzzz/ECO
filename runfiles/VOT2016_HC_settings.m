@@ -103,6 +103,15 @@ params.s_num_compressed_dim = 'MAX';    % Number of compressed feature dimension
 params.lambda = 1e-2;					% Scale filter regularization
 params.do_poly_interp = true;           % Do 2nd order polynomial interpolation to obtain more accurate scale
  
+params.RS = 0;
+params.RS_debug = 0;
+params.n_angs = 9;                     % num of angles for searching, even prefered
+params.ang_interval = 5;
+params.rotate_alpha = 1.0;
+params.dynamic_angles = 1;
+params.use_rotated_sample = 0;
+params.use_fixed_filter = 0;
+
 % Visualization
 params.visualization = 0;               % Visualiza tracking and detection scores
 params.debug = 0;                       % Do full debug visualization
