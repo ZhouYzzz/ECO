@@ -32,7 +32,7 @@ params.t_global.normalize_dim = true;   % Also normalize with respect to the dim
 
 % Image sample parameters
 params.search_area_shape = 'square';    % The shape of the samples
-params.search_area_scale = 3;         % The scaling of the target size to get the search area
+params.search_area_scale = 2.5;         % The scaling of the target size to get the search area
 params.min_image_sample_size = 150^2;   % Minimum area of image samples
 params.max_image_sample_size = 200^2;   % Maximum area of image samples
 
@@ -43,7 +43,7 @@ params.clamp_position = false;          % Clamp the target position to be inside
 
 % Learning parameters
 params.output_sigma_factor = 1/16;		% Label function sigma
-params.learning_rate = 0.009;%9	 	 	% Learning rate
+params.learning_rate = 0.1;%9	 	 	% Learning rate
 params.nSamples = 30;                   % Maximum number of stored training samples
 params.sample_replace_strategy = 'lowest_prior';    % Which sample to replace when the memory is full
 params.lt_size = 0;                     % The size of the long-term memory (where all samples have equal weight)
@@ -90,7 +90,7 @@ params.interpolation_windowing = false;     % Do additional windowing on the Fou
 
 % Scale parameters for the translation model
 % Only used if: params.use_scale_filter = false
-params.number_of_scales = 1;            % Number of scales to run the detector
+params.number_of_scales = 5;            % Number of scales to run the detector
 params.scale_step = 1.01;               % The scale factor
 
 % Scale filter parameters
@@ -111,17 +111,19 @@ params.do_poly_interp = true;           % Do 2nd order polynomial interpolation 
 % Using Rotate or Scale filter
 % used when params.RS = true
 params.RS = 0;
-params.RS_debug = 0;
+params.RS_debug = 1;
 params.n_angs = 21;                     % num of angles for searching, even prefered
 params.ang_interval = 3;
 params.rotate_alpha = 1.00;
+params.transfer_alpha = 0.5;
 params.dynamic_angles = 1;
-params.use_rotated_sample = 1;
+params.use_rotated_sample = 0;
 params.use_fixed_filter = 0;
 % scale params
 params.RS_scale = false;
 params.n_scales = 4;
 
+params.use_quick_filter = 0;
 
 % Visualization
 params.visualization = 1;               % Visualiza tracking and detection scores
