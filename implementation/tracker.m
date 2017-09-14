@@ -239,15 +239,15 @@ params.minimum_sample_weight = params.learning_rate*(1-params.learning_rate)^(2*
 res_norms = [];
 residuals_pcg = [];
 
-if params.RS
+if params.use_rotated_filters
 % init rotate model
 rotate_model = init_rotate_model(params);
 % scale_model = init_scale_model(filter_sz_cell, params);
 end
 
-if params.RS_scale
-scale_model = init_scale_model(filter_sz_cell, params);
-end
+% if params.RS_scale
+% scale_model = init_scale_model(filter_sz_cell, params);
+% end
 
 while true
     % Read image
@@ -290,7 +290,7 @@ while true
             xt_proj = cellfun(@(feat_map, cos_window) bsxfun(@times, feat_map, cos_window), xt_proj, cos_window, 'uniformoutput', false);
             
             % While detection, we should shift the feature
-            if params.RS
+            if params.use_rotated_filters
                 % Shift feature to [-T/2, T/2] domain
                 xt_proj = cellfun(@(feat_map) fftshift(fftshift(feat_map,1),2), xt_proj, 'uniformoutput', false);
             end
@@ -303,50 +303,50 @@ while true
             
             % Compute convolution for each feature block in the Fourier domain
             % and the sum over all blocks.
-            scores_fs_feat{k1} = sum(bsxfun(@times, hf_full{k1}, xtf_proj{k1}), 3);
-            scores_fs_sum = scores_fs_feat{k1};
-            for k = block_inds
-                scores_fs_feat{k} = sum(bsxfun(@times, hf_full{k}, xtf_proj{k}), 3);
-                scores_fs_sum(1+pad_sz{k}(1):end-pad_sz{k}(1), 1+pad_sz{k}(2):end-pad_sz{k}(2),1,:) = ...
-                    scores_fs_sum(1+pad_sz{k}(1):end-pad_sz{k}(1), 1+pad_sz{k}(2):end-pad_sz{k}(2),1,:) + ...
-                    scores_fs_feat{k};
-            end
-            
-            % Also sum over all feature blocks.
-            % Gives the fourier coefficients of the convolution response.
-            scores_fs = permute(gather(scores_fs_sum), [1 2 4 3]);
-
-
-            if params.use_quick_filter && 0
-                scores_quick_fs_feat{k1} = sum(bsxfun(@times, hf_quick_full{k1}, xtf_proj{k1}), 3);
-                scores_quick_fs_sum = scores_quick_fs_feat{k1};
-                for k = block_inds
-                    scores_quick_fs_feat{k} = sum(bsxfun(@times, hf_quick_full{k}, xtf_proj{k}), 3);
-                    scores_quick_fs_sum(1+pad_sz{k}(1):end-pad_sz{k}(1), 1+pad_sz{k}(2):end-pad_sz{k}(2),1,:) = ...
-                        scores_quick_fs_sum(1+pad_sz{k}(1):end-pad_sz{k}(1), 1+pad_sz{k}(2):end-pad_sz{k}(2),1,:) + ...
-                        scores_quick_fs_feat{k};
-                end
-                scores_quick_fs = permute(gather(scores_quick_fs_sum), [1 2 4 3]);
-                figure(10); imagesc(fftshift(sample_fs(scores_quick_fs)));
-                pause;
-            end
-
-			if params.RS
+            if params.use_rotated_filters
                 % compute scores using rotated filters
-                if params.use_quick_filter
+                % if params.use_quick_filter
                     % when using quick filter, the filter is trained only using sample from last example
-                    [rotate_model, scores_fs_rotated] = track_rotate_model(xtf_proj, hf_quick_full, rotate_model, k1, block_inds, pad_sz, params);
-                else
-				    [rotate_model, scores_fs_rotated] = track_rotate_model(xtf_proj, hf_full, rotate_model, k1, block_inds, pad_sz, params);
-				end
+                    % [rotate_model, scores_fs_rotated] = track_rotate_model(xtf_proj, hf_quick_full, rotate_model, k1, block_inds, pad_sz, params);
+                % else
+                [rotate_model, scores_fs_rotated] = track_rotate_model(xtf_proj, hf_full, rotate_model, k1, block_inds, pad_sz, params);
+                % end
                 % choose the best score among all scores, then update rotate_model
-                [rotate_model, scores_fs] = update_rotate_model(scores_fs, scores_fs_rotated, rotate_model, params);
-			end
-
-            if params.RS_scale
-                [scale_model, scores_fs_scaled] = track_scale_model(xtf_proj, hf_full, scale_model, k1, block_inds, pad_sz, params);
-                [scale_model, ~] = update_scale_model(scores_fs, scores_fs_scaled, scale_model, params);
+                [rotate_model, scores_fs] = update_rotate_model([], scores_fs_rotated, rotate_model, params);
+            else
+                scores_fs_feat{k1} = sum(bsxfun(@times, hf_full{k1}, xtf_proj{k1}), 3);
+                scores_fs_sum = scores_fs_feat{k1};
+                for k = block_inds
+                    scores_fs_feat{k} = sum(bsxfun(@times, hf_full{k}, xtf_proj{k}), 3);
+                    scores_fs_sum(1+pad_sz{k}(1):end-pad_sz{k}(1), 1+pad_sz{k}(2):end-pad_sz{k}(2),1,:) = ...
+                        scores_fs_sum(1+pad_sz{k}(1):end-pad_sz{k}(1), 1+pad_sz{k}(2):end-pad_sz{k}(2),1,:) + ...
+                        scores_fs_feat{k};
+                end
+                
+                % Also sum over all feature blocks.
+                % Gives the fourier coefficients of the convolution response.
+                scores_fs = permute(gather(scores_fs_sum), [1 2 4 3]);
             end
+
+
+            % if params.use_quick_filter && 0
+            %     scores_quick_fs_feat{k1} = sum(bsxfun(@times, hf_quick_full{k1}, xtf_proj{k1}), 3);
+            %     scores_quick_fs_sum = scores_quick_fs_feat{k1};
+            %     for k = block_inds
+            %         scores_quick_fs_feat{k} = sum(bsxfun(@times, hf_quick_full{k}, xtf_proj{k}), 3);
+            %         scores_quick_fs_sum(1+pad_sz{k}(1):end-pad_sz{k}(1), 1+pad_sz{k}(2):end-pad_sz{k}(2),1,:) = ...
+            %             scores_quick_fs_sum(1+pad_sz{k}(1):end-pad_sz{k}(1), 1+pad_sz{k}(2):end-pad_sz{k}(2),1,:) + ...
+            %             scores_quick_fs_feat{k};
+            %     end
+            %     scores_quick_fs = permute(gather(scores_quick_fs_sum), [1 2 4 3]);
+            %     figure(10); imagesc(fftshift(sample_fs(scores_quick_fs)));
+            %     pause;
+            % end
+
+            % if params.RS_scale
+            %     [scale_model, scores_fs_scaled] = track_scale_model(xtf_proj, hf_full, scale_model, k1, block_inds, pad_sz, params);
+            %     [scale_model, ~] = update_scale_model(scores_fs, scores_fs_scaled, scale_model, params);
+            % end
             
             % Optimize the continuous score function with Newton's method.
             [trans_row, trans_col, scale_ind] = optimize_scores(scores_fs, params.newton_iterations);
@@ -399,7 +399,7 @@ while true
         xlw = cellfun(@(feat_map, cos_window) bsxfun(@times, feat_map, cos_window), xl, cos_window, 'uniformoutput', false);
         
         % While training in 1st frame
-        if params.RS
+        if params.use_rotated_filters
             % Shift feature to [-T/2, T/2] domain
             xlw = cellfun(@(feat_map) fftshift(fftshift(feat_map,1),2), xlw, 'uniformoutput', false);
         end
@@ -418,7 +418,7 @@ while true
         xlf = shift_sample(xlf, shift_samp, kx, ky);
         
         % Init the projection matrix
-        if params.RS
+        if params.use_rotated_filters
             % xl_shift = xl;
             xl_shift = cellfun(@(xl) fftshift(fftshift(xl,1),2), xl, 'uniformoutput', false);
             projection_matrix = init_projection_matrix(xl_shift, sample_dim, params);
@@ -443,7 +443,7 @@ while true
             % Do windowing of features
             xl_proj = cellfun(@(feat_map, cos_window) bsxfun(@times, feat_map, cos_window), xl_proj, cos_window, 'uniformoutput', false);
 
-            if params.RS
+            if params.use_rotated_filters
                 % Shift feature to [-T/2, T/2] domain
                 xl_proj = cellfun(@(feat_map) fftshift(fftshift(feat_map,1),2), xl_proj, 'uniformoutput', false);
             end
@@ -470,10 +470,10 @@ while true
         shift_samp = 2*pi * (pos - sample_pos) ./ (sample_scale * img_support_sz);
         xlf_proj = shift_sample(xlf_proj, shift_samp, kx, ky);
 
-        if params.RS && params.use_rotated_sample
-            % rotate the sample
-            xlf_proj = cellfun(@(xf) rotate_filter(xf, -rotate_model.current_ang), xlf_proj, 'uniformoutput', false);
-        end
+        % if params.use_rotated_filters && params.use_rotated_sample
+        %     % rotate the sample
+        %     xlf_proj = cellfun(@(xf) rotate_filter(xf, -rotate_model.current_ang), xlf_proj, 'uniformoutput', false);
+        % end
     end
     
     % The permuted sample is only needed for the CPU implementation
@@ -534,9 +534,7 @@ while true
     end
 
     sample_weights = cast(prior_weights, 'like', params.data_type);
-    
-% 	figure(97); plot(sample_weights);
-	
+    	
     train_tracker = (seq.frame < params.skip_after_frame) || (frames_since_last_train >= params.train_gap);
     
     if train_tracker     
@@ -588,16 +586,16 @@ while true
                 [hf, projection_matrix, res_norms] = train_joint(hf, projection_matrix, xlf, yf, reg_filter, sample_energy, reg_energy, proj_energy, params, init_CG_opts);
 			end
 			
-			if params.use_quick_filter
-				hf_quick = hf;
-                hf_quick_full = full_fourier_coeff(hf_quick);
-				sample_weights_quick = sample_weights;
-				samplesf_quick = samplesf;
-			end
+% 			if params.use_quick_filter
+% 				hf_quick = hf;
+%                 hf_quick_full = full_fourier_coeff(hf_quick);
+% 				sample_weights_quick = sample_weights;
+% 				samplesf_quick = samplesf;
+% 			end
 
-            if params.RS && params.use_fixed_filter
-                rotate_model.fixed_filter = full_fourier_coeff(hf);
-            end
+            % if params.RS && params.use_fixed_filter
+            %     rotate_model.fixed_filter = full_fourier_coeff(hf);
+            % end
             
             % Re-project and insert training sample
             xlf_proj = project_sample(xlf, projection_matrix);
@@ -635,21 +633,21 @@ while true
                 [hf, res_norms, CG_state] = train_filter(hf, samplesf, yf, reg_filter, sample_weights, sample_energy, reg_energy, params, CG_opts, CG_state);
 			end
 			
-			if params.use_quick_filter
-				for k = 1:num_feature_blocks
-					if params.use_gpu
-						samplesf_quick{k}(:,:,:,1) = xlf_proj{k};
-					else
-						samplesf_quick{k}(1,:,:,:) = permute(xlf_proj{k}, [4 3 1 2]);
-					end
-				end
-				[hf_quick, res_norms_quick, CG_state_quick] = train_filter(hf_quick, samplesf_quick, yf, reg_filter, sample_weights_quick, sample_energy, reg_energy, params, CG_opts, CG_state);
-
-                hf_quick_full = full_fourier_coeff(hf_quick);
-                if 1
-                    % pass
-                end
-            end
+% 			if params.use_quick_filter
+% 				for k = 1:num_feature_blocks
+% 					if params.use_gpu
+% 						samplesf_quick{k}(:,:,:,1) = xlf_proj{k};
+% 					else
+% 						samplesf_quick{k}(1,:,:,:) = permute(xlf_proj{k}, [4 3 1 2]);
+% 					end
+% 				end
+% 				[hf_quick, res_norms_quick, CG_state_quick] = train_filter(hf_quick, samplesf_quick, yf, reg_filter, sample_weights_quick, sample_energy, reg_energy, params, CG_opts, CG_state);
+% 
+%                 hf_quick_full = full_fourier_coeff(hf_quick);
+%                 if 1
+%                     % pass
+%                 end
+%             end
         end
         
         % Reconstruct the full Fourier series
@@ -764,7 +762,11 @@ while true
 %             end
 %         end
 %          pause
-    end
+	end
+	
+	if seq.frame >= 111
+% 		pause;
+	end
 end
 
 % close(writer);

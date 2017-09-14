@@ -22,7 +22,7 @@ if params.use_reg_window
     % construct the regukarization window
     reg_window = (reg_window_edge - params.reg_window_min) * (abs(wrs/reg_scale(1)).^reg_window_power + abs(wcs/reg_scale(2)).^reg_window_power) + params.reg_window_min;
     
-    if params.RS
+    if params.use_rotated_filters
         % We should alose shift regularization window
         reg_window = fftshift(reg_window);
     end
