@@ -40,7 +40,7 @@ params.t_global.normalize_dim = true;   % Also normalize with respect to the dim
 
 % Image sample parameters
 params.search_area_shape = 'square';    % The shape of the samples
-params.search_area_scale = 3.5;%4.5         % The scaling of the target size to get the search area
+params.search_area_scale = 4;%4.5         % The scaling of the target size to get the search area
 params.min_image_sample_size = 200^2;   % Minimum area of image samples
 params.max_image_sample_size = 250^2;   % Maximum area of image samples
 
@@ -134,8 +134,9 @@ params.use_scale_filter = false;          % Use the fDSST scale filter or not (f
 params.use_rotated_filters = 1;
 params.n_angs = 2 * 10 + 1;
 params.ang_interval = 3;
-params.transfer_alpha = 0.3;
 fprintf('params.use_rotated_filters = %d\n', params.use_rotated_filters);
+params.transfer_alpha = 3.5;
+
 % Visualization
 params.visualization = 0;               % Visualiza tracking and detection scores
 params.debug = 0;                       % Do full debug visualization
