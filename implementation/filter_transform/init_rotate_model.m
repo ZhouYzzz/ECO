@@ -14,7 +14,9 @@ function [model] = init_rotate_model(params)
     % model.angs = ((1:params.n_angs)-1).*params.ang_interval;
     model.zero_rotation_ind = ceil(model.n_angs/2);
 
-    model.transfer_alpha = 1 + params.transfer_alpha * (1-hann(params.n_angs)');
+    % model.transfer_alpha = 1 + params.transfer_alpha * (1-hann(params.n_angs)');
+    model.gussian_transfer_factor = params.transfer_alpha;
+    model.transfer_alpha = exp( - model.gussian_transfer_factor * (model.angs/90.).^2);
     % model.transfer_alpha = exp(-(model.angs.^2)/5e3);
     % model.zero_rotation_ind = 1;
     assert(model.angs(model.zero_rotation_ind)==0);
