@@ -135,14 +135,14 @@ params.use_rotated_filters = 1;
 params.n_angs = 2 * 10 + 1;
 params.ang_interval = 3;
 params.transfer_alpha = 0.3;
-
+fprintf('params.use_rotated_filters = %d\n', params.use_rotated_filters);
 % Visualization
-params.visualization = 1;               % Visualiza tracking and detection scores
+params.visualization = 0;               % Visualiza tracking and detection scores
 params.debug = 0;                       % Do full debug visualization
 
 % GPU
-params.use_gpu = false;                 % Enable GPU or not
-params.gpu_id = [];                     % Set the GPU id, or leave empty to use default
+params.use_gpu = true;                 % Enable GPU or not
+params.gpu_id = [2];                     % Set the GPU id, or leave empty to use default
 
 % Initialize
 params.seq = seq;

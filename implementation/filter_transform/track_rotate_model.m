@@ -8,8 +8,11 @@ function [model, scores_fs_cell] = track_rotate_model(xf,hf,model,k1,block_inds,
     % construct rotated filters
     for i = 1:model.n_angs
         % if model.dynamic_angles
+        if params.use_gpu
+            model.rotated_filters_cell{i} = cellfun(@(hf) rotate_filter_gpu(hf, model.current_ang + model.angs(i)), hf, 'uniformoutput', false);
+        else
             model.rotated_filters_cell{i} = cellfun(@(hf) rotate_filter(hf, model.current_ang + model.angs(i)), hf, 'uniformoutput', false);
-        % else
+        end
             % model.rotated_filters_cell{i} = cellfun(@(hf) rotate_filter(hf, model.angs(i)), hf, 'uniformoutput', false);
         % end
     end
