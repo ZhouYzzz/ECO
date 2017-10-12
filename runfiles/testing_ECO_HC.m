@@ -110,6 +110,10 @@ params.do_poly_interp = true;           % Do 2nd order polynomial interpolation 
 params.visualization = 1;               % Visualiza tracking and detection scores
 params.debug = 0;                       % Do full debug visualization
 
+% Rotate Augmentation
+params.augment = 1;
+params.augment_angle = 28;
+
 % GPU
 params.use_gpu = false;                 % Enable GPU or not
 params.gpu_id = [];                     % Set the GPU id, or leave empty to use default

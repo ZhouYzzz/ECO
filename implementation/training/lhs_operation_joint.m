@@ -1,4 +1,4 @@
-function hf_out = lhs_operation_joint(hf, samplesf, reg_filter, init_samplef, XH, init_hf, proj_reg)
+function hf_out = lhs_operation_joint(hf, samplesf, reg_filter, init_samplef, XH, init_hf, proj_reg, augment)
 
 % This is the left-hand-side operation in Conjugate Gradient
 
@@ -36,6 +36,10 @@ end
 
 % weight all the samples
 % sh = bsxfun(@times,sample_weights,sh);
+if 0
+	sample_weights = ones(3,1);
+	sh = bsxfun(@times,sample_weights,sh);
+end
 
 % multiply with the transpose
 hf_out1 = cell(1,1,num_features);
@@ -62,6 +66,12 @@ for k = 1:num_features
 end
 
 % Stuff related to the projection matrix
+if augment
+	% pick 1st slice
+	init_samplef = cellfun(@(xf) xf(1,:,:,:), init_samplef, 'uniformoutput', false);
+	samplesf = cellfun(@(xf) xf(1,:,:,:), samplesf, 'uniformoutput', false);
+	sh = sh(1,:,:,:);
+end
 
 % B * P
 BP_cell = cell(1,1,num_features);
