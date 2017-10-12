@@ -279,6 +279,9 @@ while true
             % Do windowing of features
             xt_proj = cellfun(@(feat_map, cos_window) bsxfun(@times, feat_map, cos_window), xt_proj, cos_window, 'uniformoutput', false);
             
+			% Shift feature to [-T/2, T/2] domain
+			xt_proj = cellfun(@(x) fftshift(fftshift(x,1),2), xt_proj, 'uniformoutput', false);
+			
             % Compute the fourier series
             xtf_proj = cellfun(@cfft2, xt_proj, 'uniformoutput', false);
             
@@ -350,6 +353,9 @@ while true
         % Do windowing of features
         xlw = cellfun(@(feat_map, cos_window) bsxfun(@times, feat_map, cos_window), xl, cos_window, 'uniformoutput', false);
         
+		% Shift feature to [-T/2, T/2] domain
+		xlw = cellfun(@(x) fftshift(fftshift(x,1),2), xlw, 'uniformoutput', false);
+		
         % Compute the fourier series
         xlf = cellfun(@cfft2, xlw, 'uniformoutput', false);
         
@@ -383,6 +389,9 @@ while true
             % Do windowing of features
             xl_proj = cellfun(@(feat_map, cos_window) bsxfun(@times, feat_map, cos_window), xl_proj, cos_window, 'uniformoutput', false);
             
+			% Shift feature to [-T/2, T/2] domain
+			xl_proj = cellfun(@(x) fftshift(fftshift(x,1),2), xl_proj, 'uniformoutput', false);
+			
             % Compute the fourier series
             xlf1_proj = cellfun(@cfft2, xl_proj, 'uniformoutput', false);
             
