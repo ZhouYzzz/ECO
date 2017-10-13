@@ -38,14 +38,14 @@ end
 sh = conj(sh);
 if augment
 %   sample_weights = ones(3,1)/3;
-    sh = bsxfun(@times,augment_weights',sh);
+    sh = bsxfun(@times,reshape(augment_weights,1,1,1,[]),sh);
 end
 
 % multiply with the transpose
 hf_out1 = cell(1,1,num_features);
 hf_out1{k1} = conj(sum(bsxfun(@times, sh, samplesf{k1}), 4));
 for k = block_inds
-    hf_out1{k} = conj(sum(bsxfun(@times, sh(1+pad_sz{k}(1):end-pad_sz{k}(1), 1+pad_sz{k}(2):end,1,1,:), samplesf{k}), 4));
+    hf_out1{k} = conj(sum(bsxfun(@times, sh(1+pad_sz{k}(1):end-pad_sz{k}(1), 1+pad_sz{k}(2):end,1,:), samplesf{k}), 4));
 end
 
 % compute the operation corresponding to the regularization term (convolve
@@ -68,9 +68,9 @@ end
 % Stuff related to the projection matrix
 if augment
     % pick 1st slice
-    init_samplef = cellfun(@(xf) xf(1,:,:,:), init_samplef, 'uniformoutput', false);
-    samplesf = cellfun(@(xf) xf(1,:,:,:), samplesf, 'uniformoutput', false);
-    sh = sh(1,:,:,:);
+    init_samplef = cellfun(@(xf) xf(:,:,:,1), init_samplef, 'uniformoutput', false);
+    samplesf = cellfun(@(xf) xf(:,:,:,1), samplesf, 'uniformoutput', false);
+    sh = sh(:,:,:,1);
 end
 
 % B * P

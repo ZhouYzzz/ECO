@@ -8,12 +8,7 @@ lf_ind = cellfun(@(hf) size(hf,1) * (size(hf,2)-1) + 1, hf(1,1,:), 'uniformoutpu
 
 % Construct stuff for the proj matrix part
 % init_samplef = cellfun(@(x) permute(x, [4 3 1 2]), init_samplef, 'uniformoutput', false);
-if params.augment % TODO
-    % select 1st slice
-    init_samplef_H = cellfun(@(X) reshape(X(1,:,:,:), size(X,2)', []), init_samplef, 'uniformoutput', false);
-else
-    init_samplef_H = cellfun(@(X) reshape(X, [], size(X,3))', init_samplef, 'uniformoutput', false);
-end
+init_samplef_H = cellfun(@(X) reshape(X(:,:,:,1), [], size(X,3))', init_samplef, 'uniformoutput', false);
 
 % Construct preconditioner
 diag_M = cell(size(hf));
@@ -30,8 +25,8 @@ for iter = 1:params.init_GN_iter
     init_hf = hf(1,1,:);
     
     % Construct the right hand side vector for the filter part
-    if params.augment % TODO
-        rhs_samplef(1,1,:) = cellfun(@(xf) permute(mtimesx(params.augment_weights', 'T', xf, 'speed'), [3 4 2 1]), init_samplef_proj, 'uniformoutput', false);
+    if params.augment
+        rhs_samplef(1,1,:) = cellfun(@(xf) sum(bsxfun(@times,xf,reshape(params.augment_weights,1,1,1,[])),4),init_samplef_proj, 'uniformoutput', false);
         rhs_samplef(1,1,:) = cellfun(@(xf, yf) bsxfun(@times, conj(xf), yf), rhs_samplef(1,1,:), yf, 'uniformoutput', false);
     else
         rhs_samplef(1,1,:) = cellfun(@(xf, yf) bsxfun(@times, conj(xf), yf), init_samplef_proj, yf, 'uniformoutput', false);

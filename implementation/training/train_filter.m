@@ -7,7 +7,8 @@ if params.augment
 samplesf = cellfun(@(xf) permute(xf,[3,4,2,1]), samplesf, 'uniformoutput', false);
 samplesf = cellfun(@(xf) reshape(xf,size(xf,1),size(xf,2),[],size(xf,4)*3), samplesf, 'uniformoutput', false);
 samplesf = cellfun(@(xf) permute(xf,[4,3,1,2]), samplesf, 'uniformoutput', false);
-sample_weights = reshape(times([sample_weights,sample_weights,sample_weights],params.augment_weights)',[],1);
+%% sample_weights = reshape(times([sample_weights,sample_weights,sample_weights],params.augment_weights)',[],1);
+sample_weights = reshape(bsxfun(@times,[sample_weights,sample_weights,sample_weights],params.augment_weights)',[],1);
 end
 % Construct the right hand side vector
 rhs_samplef = cellfun(@(xf) permute(mtimesx(sample_weights, 'T', xf, 'speed'), [3 4 2 1]), samplesf, 'uniformoutput', false);
