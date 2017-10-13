@@ -31,8 +31,7 @@ for iter = 1:params.init_GN_iter
     
     % Construct the right hand side vector for the filter part
 	if params.augment
-		sample_weights = ones(3,1);
-		rhs_samplef(1,1,:) = cellfun(@(xf) permute(mtimesx(sample_weights, 'T', xf, 'speed'), [3 4 2 1]), init_samplef_proj, 'uniformoutput', false);
+		rhs_samplef(1,1,:) = cellfun(@(xf) permute(mtimesx(params.augment_weights', 'T', xf, 'speed'), [3 4 2 1]), init_samplef_proj, 'uniformoutput', false);
 		rhs_samplef(1,1,:) = cellfun(@(xf, yf) bsxfun(@times, conj(xf), yf), rhs_samplef(1,1,:), yf, 'uniformoutput', false);
 	else
 		rhs_samplef(1,1,:) = cellfun(@(xf, yf) bsxfun(@times, conj(permute(xf, [3 4 2 1])), yf), init_samplef_proj, yf, 'uniformoutput', false);
