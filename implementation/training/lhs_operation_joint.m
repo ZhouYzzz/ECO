@@ -1,4 +1,4 @@
-function hf_out = lhs_operation_joint(hf, samplesf, reg_filter, init_samplef, XH, init_hf, proj_reg, augment)
+function hf_out = lhs_operation_joint(hf, samplesf, reg_filter, init_samplef, XH, init_hf, proj_reg, augment, augment_weights)
 
 % This is the left-hand-side operation in Conjugate Gradient
 
@@ -36,9 +36,9 @@ end
 
 % weight all the samples
 % sh = bsxfun(@times,sample_weights,sh);
-if 0
-	sample_weights = ones(3,1);
-	sh = bsxfun(@times,sample_weights,sh);
+if augment
+% 	sample_weights = ones(3,1)/3;
+	sh = bsxfun(@times,augment_weights',sh);
 end
 
 % multiply with the transpose
