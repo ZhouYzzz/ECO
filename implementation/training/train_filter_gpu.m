@@ -2,7 +2,15 @@ function [hf, res_norms, CG_state] = train_filter_gpu(hf, samplesf, yf, reg_filt
 
 % Do Conjugate gradient optimization of the filter.
 
-sample_weights = permute(sample_weights, [2 3 4 1]);
+% split rotated samples
+if params.augment % TODO
+samplesf = cellfun(@(xf) permute(xf,[3,4,2,1]), samplesf, 'uniformoutput', false);
+samplesf = cellfun(@(xf) reshape(xf,size(xf,1),size(xf,2),[],size(xf,4)*3), samplesf, 'uniformoutput', false);
+samplesf = cellfun(@(xf) permute(xf,[4,3,1,2]), samplesf, 'uniformoutput', false);
+sample_weights = reshape(times([sample_weights,sample_weights,sample_weights],params.augment_weights)',[],1);
+end
+
+sample_weights = permute(sample_weights, [2 3 4 1]); % gpu needs permute
 
 % Construct the right hand side vector
 rhs_samplef = cellfun(@(xf) sum(bsxfun(@times, sample_weights, xf), 4), samplesf, 'uniformoutput', false);

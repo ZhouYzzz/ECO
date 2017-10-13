@@ -118,6 +118,11 @@ params.use_scale_filter = false;          % Use the fDSST scale filter or not (f
 params.visualization = 1;               % Visualiza tracking and detection scores
 params.debug = 0;                       % Do full debug visualization
 
+% Rotate Augmentation
+params.augment = 1;
+params.augment_angle = 28; % 28 will succeed in Motor
+params.augment_weights = [1,1,1];
+
 % GPU
 params.use_gpu = true;                 % Enable GPU or not
 params.gpu_id = [];                     % Set the GPU id, or leave empty to use default
