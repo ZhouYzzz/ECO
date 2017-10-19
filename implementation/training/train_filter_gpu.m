@@ -7,7 +7,8 @@ if params.augment % samplesf : [H,W,3C,N]
 % samplesf = cellfun(@(xf) permute(xf,[3,4,2,1]), samplesf, 'uniformoutput', false);
 samplesf = cellfun(@(xf) reshape(xf,size(xf,1),size(xf,2),[],size(xf,4)*params.augment_factor), samplesf, 'uniformoutput', false);
 % samplesf = cellfun(@(xf) permute(xf,[4,3,1,2]), samplesf, 'uniformoutput', false);
-sample_weights = reshape(bsxfun(@times,[sample_weights,sample_weights,sample_weights],params.augment_weights)',[],1);
+% sample_weights = reshape(bsxfun(@times,[sample_weights,sample_weights,sample_weights],params.augment_weights)',[],1);
+sample_weights = reshape(bsxfun(@times,repmat(sample_weights,[1,params.augment_factor]),params.augment_weights)',[],1);
 end
 
 sample_weights = permute(sample_weights, [2 3 4 1]); % gpu needs permute
