@@ -120,8 +120,9 @@ params.debug = 0;                       % Do full debug visualization
 
 % Rotate Augmentation
 params.augment = 1;
-params.augment_angle = 22; % 28 will succeed in Motor
-params.augment_weights = [.4,.3,.3];
+params.augment_factor = 5;
+params.augment_angle = [0,-20,20,-10,10]; % 30 [1,.4,.4] will succeed in Motor
+params.augment_weights = [1,.3,.3,.3,.3]; % 15, [1,.5,.5] also succeed
 
 % GPU
 params.use_gpu = false;                 % Enable GPU or not

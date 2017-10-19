@@ -211,7 +211,7 @@ sample_weights = cast(prior_weights, 'like', params.data_type);
 samplesf = cell(1, 1, num_feature_blocks);
 
 augment_factor = 1;
-if params.augment, augment_factor = 3; end;
+if params.augment, augment_factor = params.augment_factor; end;
 
 if params.use_gpu
     % In the GPU version, the data is stored in a more normal way since we
@@ -370,7 +370,8 @@ while true
 		
 		if params.augment
 			% cpu:[H,W,C], cat along channel(3rd) dim -> [H,W,3C]
-			xlf = cellfun(@(xf) cat(3,xf,rotatef(xf,-params.augment_angle),rotatef(xf,params.augment_angle)),xlf,'uniformoutput',false);
+			xlf = augment_sample(xlf, params);
+			% xlf = cellfun(@(xf) cat(3,xf,rotatef(xf,-params.augment_angle),rotatef(xf,params.augment_angle)),xlf,'uniformoutput',false);
 		end
         
         % New sample to be added
@@ -385,7 +386,7 @@ while true
         
         % Project sample
 		if params.augment
-			xlf = cellfun(@(xf) reshape(xf,size(xf,1),size(xf,2),[],3),xlf,'uniformoutput',false);
+			xlf = cellfun(@(xf) reshape(xf,size(xf,1),size(xf,2),[],augment_factor),xlf,'uniformoutput',false);
 			xlf_proj = project_sample(xlf, projection_matrix);
 			xlf_proj = cellfun(@(xf) reshape(xf,size(xf,1),size(xf,2),[]),xlf_proj,'uniformoutput',false);
 		else
@@ -430,7 +431,8 @@ while true
 				% select true scale
 				xtf_proj_scale = cellfun(@(xf) xf(:,:,:,scale_ind), xtf_proj, 'uniformoutput', false);
 				% do rotate augmentation
-				xtf_proj = cellfun(@(xf) cat(3,xf,rotatef(xf,-params.augment_angle),rotatef(xf,params.augment_angle)),xtf_proj_scale,'uniformoutput',false);
+				xtf_proj = augment_sample(xtf_proj_scale, params);
+                % xtf_proj = cellfun(@(xf) cat(3,xf,rotatef(xf,-params.augment_angle),rotatef(xf,params.augment_angle)),xtf_proj_scale,'uniformoutput',false);
 				xlf_proj = cellfun(@(xf) xf(:,1:(size(xf,2)+1)/2,:), xtf_proj, 'uniformoutput', false);
 			else
 				xlf_proj = cellfun(@(xf) xf(:,1:(size(xf,2)+1)/2,:,scale_ind), xtf_proj, 'uniformoutput', false);
