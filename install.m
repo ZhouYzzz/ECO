@@ -48,3 +48,8 @@ if exist('external_libs/matconvnet/matlab', 'dir') == 7
 else
     warning('ECO:install', 'Matconvnet not found. Clone this submodule if you want to use CNN features. Skipping for now.')
 end
+
+% cp imrotatemex to private
+mr = matlabroot;
+result = system(['cp ' fullfile(mr,'toolbox','images','images','private','imrotatemex.mex*') ' implementation/filter_transform/private/']);
+if ~result, error('imrotatemex error');end;

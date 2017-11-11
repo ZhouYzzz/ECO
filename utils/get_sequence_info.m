@@ -45,6 +45,11 @@ elseif strcmpi(seq.format, 'vot')
         s = sqrt(A1/A2);
         w = s * (x2 - x1) + 1;
         h = s * (y2 - y1) + 1;
+        if seq.bbox_adjust
+            factor = seq.bbox_adjust_factor;
+            if h/w > factor, w = h/factor;end;
+            if w/h > factor, h = w/factor;end;
+        end
     else
         cx = init_region(1) + (init_region(3) - 1)/2;
         cy = init_region(2) + (init_region(4) - 1)/2;
