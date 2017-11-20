@@ -22,6 +22,9 @@ if params.use_reg_window
     % construct the regukarization window
     reg_window = (reg_window_edge - params.reg_window_min) * (abs(wrs/reg_scale(1)).^reg_window_power + abs(wcs/reg_scale(2)).^reg_window_power) + params.reg_window_min;
     
+	% Shift window to [-T/2, T/2] domain
+	reg_window = fftshift(fftshift(reg_window,1),2);
+	
     % compute the DFT and enforce sparsity
     reg_window_dft = fft2(reg_window) / prod(sz);
     reg_window_dft(abs(reg_window_dft) < params.reg_sparsity_threshold * max(abs(reg_window_dft(:)))) = 0;

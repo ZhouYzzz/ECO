@@ -8,7 +8,7 @@ lf_ind = cellfun(@(hf) size(hf,1) * (size(hf,2)-1) + 1, hf(1,1,:), 'uniformoutpu
 
 % Construct stuff for the proj matrix part
 % init_samplef = cellfun(@(x) permute(x, [4 3 1 2]), init_samplef, 'uniformoutput', false);
-init_samplef_H = cellfun(@(X) reshape(X, [], size(X,3))', init_samplef, 'uniformoutput', false);
+init_samplef_H = cellfun(@(X) reshape(X(:,:,:,1), [], size(X,3))', init_samplef, 'uniformoutput', false);
 
 % Construct preconditioner
 diag_M = cell(size(hf));
@@ -25,7 +25,12 @@ for iter = 1:params.init_GN_iter
     init_hf = hf(1,1,:);
     
     % Construct the right hand side vector for the filter part
-    rhs_samplef(1,1,:) = cellfun(@(xf, yf) bsxfun(@times, conj(xf), yf), init_samplef_proj, yf, 'uniformoutput', false);
+    if params.augment
+        rhs_samplef(1,1,:) = cellfun(@(xf) sum(bsxfun(@times,xf,reshape(params.augment_weights,1,1,1,[])),4),init_samplef_proj, 'uniformoutput', false);
+        rhs_samplef(1,1,:) = cellfun(@(xf, yf) bsxfun(@times, conj(xf), yf), rhs_samplef(1,1,:), yf, 'uniformoutput', false);
+    else
+        rhs_samplef(1,1,:) = cellfun(@(xf, yf) bsxfun(@times, conj(xf), yf), init_samplef_proj, yf, 'uniformoutput', false);
+    end
     
     % Construct the right hand side vector for the projection matrix part
     fyf = cellfun(@(f, yf) reshape(bsxfun(@times, conj(f), yf), [], size(f,3)), hf(1,1,:), yf, 'uniformoutput', false);
@@ -37,7 +42,7 @@ for iter = 1:params.init_GN_iter
     
     % do conjugate gradient
     [hf, res_norms_temp] = pcg_ccot(...
-        @(x) lhs_operation_joint_gpu(x, init_samplef_proj, reg_filter, init_samplef, init_samplef_H, init_hf, params.projection_reg),...
+        @(x) lhs_operation_joint_gpu(x, init_samplef_proj, reg_filter, init_samplef, init_samplef_H, init_hf, params.projection_reg, params.augment, params.augment_weights),...
         rhs_samplef, init_CG_opts, ...
         @(x) diag_precond(x, diag_M), ...
         [], @inner_product_joint, hf);

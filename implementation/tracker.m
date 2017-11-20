@@ -117,6 +117,8 @@ else
     sample_dim = feature_dim;
 end
 
+sample_dim_cell = reshape(mat2cell(sample_dim, ones(1,num_feature_blocks)),1,1,num_feature_blocks);
+
 % Size of the extracted feature maps
 feature_sz_cell = permute(mat2cell(feature_sz, ones(1,num_feature_blocks), 2), [2 3 1]);
 
@@ -206,15 +208,19 @@ seq.time = 0;
 prior_weights = zeros(params.nSamples,1, 'single');
 sample_weights = cast(prior_weights, 'like', params.data_type);
 samplesf = cell(1, 1, num_feature_blocks);
+
+augment_factor = 1;
+if params.augment, augment_factor = params.augment_factor; end;
+
 if params.use_gpu
     % In the GPU version, the data is stored in a more normal way since we
     % dont have to use mtimesx.
     for k = 1:num_feature_blocks
-        samplesf{k} = zeros(filter_sz(k,1),(filter_sz(k,2)+1)/2,sample_dim(k),params.nSamples, 'like', params.data_type_complex);
+        samplesf{k} = zeros(filter_sz(k,1),(filter_sz(k,2)+1)/2,sample_dim(k)*augment_factor,params.nSamples, 'like', params.data_type_complex);
     end
 else
     for k = 1:num_feature_blocks
-        samplesf{k} = zeros(params.nSamples,sample_dim(k),filter_sz(k,1),(filter_sz(k,2)+1)/2, 'like', params.data_type_complex);
+        samplesf{k} = zeros(params.nSamples,sample_dim(k)*augment_factor,filter_sz(k,1),(filter_sz(k,2)+1)/2, 'like', params.data_type_complex);
     end
 end
 
@@ -278,6 +284,9 @@ while true
             % Do windowing of features
             xt_proj = cellfun(@(feat_map, cos_window) bsxfun(@times, feat_map, cos_window), xt_proj, cos_window, 'uniformoutput', false);
             
+			% Shift feature to [-T/2, T/2] domain
+			xt_proj = cellfun(@(x) fftshift(fftshift(x,1),2), xt_proj, 'uniformoutput', false);
+			
             % Compute the fourier series
             xtf_proj = cellfun(@cfft2, xt_proj, 'uniformoutput', false);
             
@@ -349,11 +358,20 @@ while true
         % Do windowing of features
         xlw = cellfun(@(feat_map, cos_window) bsxfun(@times, feat_map, cos_window), xl, cos_window, 'uniformoutput', false);
         
+		% Shift feature to [-T/2, T/2] domain
+		xlw = cellfun(@(x) fftshift(fftshift(x,1),2), xlw, 'uniformoutput', false);
+		
         % Compute the fourier series
         xlf = cellfun(@cfft2, xlw, 'uniformoutput', false);
         
         % Interpolate features to the continuous domain
         xlf = interpolate_dft(xlf, interp1_fs, interp2_fs);
+		
+		if params.augment
+			% cpu:[H,W,C], cat along channel(3rd) dim -> [H,W,3C]
+			xlf = augment_sample(xlf, params);
+			% xlf = cellfun(@(xf) cat(3,xf,rotatef(xf,-params.augment_angle),rotatef(xf,params.augment_angle)),xlf,'uniformoutput',false);
+		end
         
         % New sample to be added
         xlf = compact_fourier_coeff(xlf);
@@ -366,11 +384,18 @@ while true
         projection_matrix = init_projection_matrix(xl, sample_dim, params);
         
         % Project sample
-        xlf_proj = project_sample(xlf, projection_matrix);
+		if params.augment
+			xlf = cellfun(@(xf) reshape(xf,size(xf,1),size(xf,2),[],augment_factor),xlf,'uniformoutput',false);
+			xlf_proj = project_sample(xlf, projection_matrix);
+			xlf_proj = cellfun(@(xf) reshape(xf,size(xf,1),size(xf,2),[]),xlf_proj,'uniformoutput',false);
+		else
+			xlf_proj = project_sample(xlf, projection_matrix);
+		end
         
         clear xlw
     elseif params.learning_rate > 0
         if ~params.use_detection_sample
+			error('NO IMPLEMENTATION');
             % Extract image region for training sample
             sample_pos = round(pos);
             sample_scale = currentScaleFactor;
@@ -382,6 +407,9 @@ while true
             % Do windowing of features
             xl_proj = cellfun(@(feat_map, cos_window) bsxfun(@times, feat_map, cos_window), xl_proj, cos_window, 'uniformoutput', false);
             
+			% Shift feature to [-T/2, T/2] domain
+			xl_proj = cellfun(@(x) fftshift(fftshift(x,1),2), xl_proj, 'uniformoutput', false);
+			
             % Compute the fourier series
             xlf1_proj = cellfun(@cfft2, xl_proj, 'uniformoutput', false);
             
@@ -398,7 +426,16 @@ while true
             
             % Use the sample that was used for detection
             sample_scale = sample_scale(scale_ind);
-            xlf_proj = cellfun(@(xf) xf(:,1:(size(xf,2)+1)/2,:,scale_ind), xtf_proj, 'uniformoutput', false);
+			if params.augment
+				% select true scale
+				xtf_proj_scale = cellfun(@(xf) xf(:,:,:,scale_ind), xtf_proj, 'uniformoutput', false);
+				% do rotate augmentation
+				xtf_proj = augment_sample(xtf_proj_scale, params);
+                % xtf_proj = cellfun(@(xf) cat(3,xf,rotatef(xf,-params.augment_angle),rotatef(xf,params.augment_angle)),xtf_proj_scale,'uniformoutput',false);
+				xlf_proj = cellfun(@(xf) xf(:,1:(size(xf,2)+1)/2,:), xtf_proj, 'uniformoutput', false);
+			else
+				xlf_proj = cellfun(@(xf) xf(:,1:(size(xf,2)+1)/2,:,scale_ind), xtf_proj, 'uniformoutput', false);
+			end
         end
         
         % Shift the sample so that the target is centered
@@ -469,8 +506,13 @@ while true
     
     if train_tracker     
         % Used for preconditioning
-        new_sample_energy = cellfun(@(xlf) abs(xlf .* conj(xlf)), xlf_proj, 'uniformoutput', false);
-        
+		if params.augment
+			% use only the 1st silce (of 3rd dim) as xlf_proj, since we augment before
+			new_sample_energy = cellfun(@(xlf,sd) abs(xlf(:,:,1:sd) .* conj(xlf(:,:,1:sd))),xlf_proj,sample_dim_cell,'uniformoutput',false);
+		else
+			new_sample_energy = cellfun(@(xlf) abs(xlf .* conj(xlf)), xlf_proj, 'uniformoutput', false);
+		end
+		
         if seq.frame == 1
             % Initialize stuff for the filter learning
             
@@ -518,6 +560,9 @@ while true
             
             % Re-project and insert training sample
             xlf_proj = project_sample(xlf, projection_matrix);
+			if params.augment
+				xlf_proj = cellfun(@(xf) reshape(xf,size(xf,1),size(xf,2),[]), xlf_proj, 'uniformoutput', false);
+			end
             for k = 1:num_feature_blocks
                 if params.use_gpu
                     samplesf{k}(:,:,:,1) = xlf_proj{k};

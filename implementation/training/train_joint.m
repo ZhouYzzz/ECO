@@ -8,7 +8,12 @@ lf_ind = cellfun(@(hf) size(hf,1) * (size(hf,2)-1) + 1, hf(1,1,:), 'uniformoutpu
 
 % Construct stuff for the proj matrix part
 init_samplef = cellfun(@(x) permute(x, [4 3 1 2]), xlf, 'uniformoutput', false);
-init_samplef_H = cellfun(@(X) conj(reshape(X, size(X,2), [])), init_samplef, 'uniformoutput', false);
+if params.augment
+	% select 1st slice
+	init_samplef_H = cellfun(@(X) conj(reshape(X(1,:,:,:), size(X,2), [])), init_samplef, 'uniformoutput', false);
+else
+	init_samplef_H = cellfun(@(X) conj(reshape(X, size(X,2), [])), init_samplef, 'uniformoutput', false);
+end
 
 % Construct preconditioner
 diag_M = cell(size(hf));
@@ -25,7 +30,13 @@ for iter = 1:params.init_GN_iter
     init_hf = cellfun(@(x) permute(x, [3 4 1 2]), hf(1,1,:), 'uniformoutput', false);
     
     % Construct the right hand side vector for the filter part
-    rhs_samplef(1,1,:) = cellfun(@(xf, yf) bsxfun(@times, conj(permute(xf, [3 4 2 1])), yf), init_samplef_proj, yf, 'uniformoutput', false);
+	if params.augment
+		rhs_samplef(1,1,:) = cellfun(@(xf) permute(mtimesx(params.augment_weights', 'T', xf, 'speed'), [3 4 2 1]), init_samplef_proj, 'uniformoutput', false);
+		rhs_samplef(1,1,:) = cellfun(@(xf, yf) bsxfun(@times, conj(xf), yf), rhs_samplef(1,1,:), yf, 'uniformoutput', false);
+	else
+		rhs_samplef(1,1,:) = cellfun(@(xf, yf) bsxfun(@times, conj(permute(xf, [3 4 2 1])), yf), init_samplef_proj, yf, 'uniformoutput', false);
+	end
+	
     
     % Construct the right hand side vector for the projection matrix part
     fyf = cellfun(@(f, yf) reshape(bsxfun(@times, conj(f), yf), [], size(f,3)), hf(1,1,:), yf, 'uniformoutput', false);
@@ -37,7 +48,7 @@ for iter = 1:params.init_GN_iter
     
     % do conjugate gradient
     [hf, res_norms_temp] = pcg_ccot(...
-        @(x) lhs_operation_joint(x, init_samplef_proj, reg_filter, init_samplef, init_samplef_H, init_hf, params.projection_reg),...
+        @(x) lhs_operation_joint(x, init_samplef_proj, reg_filter, init_samplef, init_samplef_H, init_hf, params.projection_reg, params.augment, params.augment_weights),...
         rhs_samplef, init_CG_opts, ...
         @(x) diag_precond(x, diag_M), ...
         [], @inner_product_joint, hf);
