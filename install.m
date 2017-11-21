@@ -48,3 +48,30 @@ if exist('external_libs/matconvnet/matlab', 'dir') == 7
 else
     warning('ECO:install', 'Matconvnet not found. Clone this submodule if you want to use CNN features. Skipping for now.')
 end
+
+% imrotate internal functions
+p = fullfile(matlabroot, 'toolbox', 'images', 'images');
+mexfile = fullfile(p, 'private', ['imrotatemex.' mexext]);
+mexgpufile = fullfile(p, '@gpuArray', 'private', ['imrotategpumex.' mexext]);
+if exist(mexfile, 'file')
+    system(['cp ' mexfile ' ' 'implementation/filter_transform/private/']);
+else
+    warning('RACF: the mex file for `imrotate` does not exist. See implementation/filter_transform/rotatef.m for solutions');
+end
+
+if exist(mexgpufile, 'file')
+    system(['cp ' mexgpufile ' ' 'implementation/filter_transform/private/']);
+else
+    warning('RACF: the mex file for `imrotategpu` does not exist. See implementation/filter_transform/rotatef.m for solutions');
+end
+% test the `rotatef` function
+addpath('implementation/filter_transform/');
+try
+    a = ones(7,7);
+    a = complex(a,a);
+    rotatef(a, 45);
+catch err
+    display(getReport(err));
+    warning('RACF: the `rotatef` function does not work well. See implementation/filter_transform/rotatef.m for solutions');
+end
+
