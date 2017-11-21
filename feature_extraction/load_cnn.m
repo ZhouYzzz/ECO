@@ -1,6 +1,6 @@
 function net = load_cnn(fparams, im_size)
 
-net = load([get_global_variable('rootdir') '/networks/' fparams.nn_name]);
+net = load([get_global_variable('rootdir') '/feature_extraction/networks/' fparams.nn_name]);
 net = vl_simplenn_tidy(net);
 net.layers = net.layers(1:max(fparams.output_layer));
 

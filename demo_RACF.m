@@ -10,4 +10,4 @@ video_path = 'sequences/MotorRolling';
 [seq, ground_truth] = load_video_info(video_path);
 
 % Run ECO
-results = testing_ECO(seq);
+results = testing_RACF(seq);
