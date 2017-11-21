@@ -29,3 +29,5 @@ addpath([pathstr '/external_libs/mtimesx/']);
 
 % mexResize
 addpath([pathstr '/external_libs/mexResize/']);
+
+set_global_variable('rootdir', pathstr);
