@@ -103,6 +103,8 @@ params.s_num_compressed_dim = 'MAX';    % Number of compressed feature dimension
 params.lambda = 1e-2;					% Scale filter regularization
 params.do_poly_interp = true;           % Do 2nd order polynomial interpolation to obtain more accurate scale
  
+error('No RACF parameters available.');
+
 % Visualization
 params.visualization = 0;               % Visualiza tracking and detection scores
 params.debug = 0;                       % Do full debug visualization

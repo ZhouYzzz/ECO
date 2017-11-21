@@ -114,12 +114,18 @@ params.use_scale_filter = false;          % Use the fDSST scale filter or not (f
 % params.lambda = 1e-2;					  % Scale filter regularization
 % params.do_poly_interp = true;           % Do 2nd order polynomial interpolation to obtain more accurate scale
 
+% Rotate Augmentation
+params.augment = true;                          % whether augmentation, if false, equivalent to ECO
+params.augment_factor = 5;                      % times of training samples we use
+params.augment_angle = [0,-20,20,-10,10];       % the rotate angles
+params.augment_weights = [0.91,.095,.095,.1,.1];% the relative weights assigned to each sample
+
 % Visualization
 params.visualization = 0;               % Visualiza tracking and detection scores
 params.debug = 0;                       % Do full debug visualization
 
 % GPU
-params.use_gpu = false;                 % Enable GPU or not
+params.use_gpu = true;                 % Enable GPU or not
 params.gpu_id = [];                     % Set the GPU id, or leave empty to use default
 
 % Initialize

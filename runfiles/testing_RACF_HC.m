@@ -1,8 +1,11 @@
-function results = OTB_HC_settings(seq, res_path, bSaveImage, parameters)
+function results = testing_ECO_HC(seq, res_path, bSaveImage, parameters)
 
 % Feature specific parameters
 hog_params.cell_size = 6;
 hog_params.compressed_dim = 10;
+
+grayscale_params.colorspace='gray';
+grayscale_params.cell_size = 1;
 
 cn_params.tablename = 'CNnorm';
 cn_params.useForGray = false;
@@ -14,10 +17,10 @@ ic_params.useForColor = false;
 ic_params.cell_size = 4;
 ic_params.compressed_dim = 3;
 
-
 % Which features to include
 params.t_features = {
     struct('getFeature',@get_fhog,'fparams',hog_params),...
+    ...struct('getFeature',@get_colorspace, 'fparams',grayscale_params),...
     struct('getFeature',@get_table_feature, 'fparams',cn_params),...
     struct('getFeature',@get_table_feature, 'fparams',ic_params),...
 };
@@ -85,8 +88,8 @@ params.interpolation_windowing = false;     % Do additional windowing on the Fou
 
 % Scale parameters for the translation model
 % Only used if: params.use_scale_filter = false
-% params.number_of_scales = 7;            % Number of scales to run the detector
-% params.scale_step = 1.01;               % The scale factor
+params.number_of_scales = 7;            % Number of scales to run the detector
+params.scale_step = 1.01;               % The scale factor
 
 % Scale filter parameters
 % Only used if: params.use_scale_filter = true
@@ -106,7 +109,7 @@ params.do_poly_interp = true;           % Do 2nd order polynomial interpolation 
 error('No RACF parameters available.');
 
 % Visualization
-params.visualization = 0;               % Visualiza tracking and detection scores
+params.visualization = 1;               % Visualiza tracking and detection scores
 params.debug = 0;                       % Do full debug visualization
 
 % GPU
