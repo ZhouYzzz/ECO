@@ -395,7 +395,7 @@ while true
         clear xlw
     elseif params.learning_rate > 0
         if ~params.use_detection_sample
-			error('NO IMPLEMENTATION');
+% 			error('NO IMPLEMENTATION');
             % Extract image region for training sample
             sample_pos = round(pos);
             sample_scale = currentScaleFactor;
@@ -416,9 +416,13 @@ while true
             % Interpolate features to the continuous domain
             xlf1_proj = interpolate_dft(xlf1_proj, interp1_fs, interp2_fs);
             
+            if params.augment
+                xlf1_proj = augment_sample(xlf1_proj, params);
+            end
             % New sample to be added
             xlf_proj = compact_fourier_coeff(xlf1_proj);
         else
+%             error('NO IMPLEMENTATION');
             if params.debug
                 % Only for visualization
                 xl = cellfun(@(xt) xt(:,:,:,scale_ind), xt, 'uniformoutput', false);
